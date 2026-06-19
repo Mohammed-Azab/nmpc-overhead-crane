@@ -90,16 +90,18 @@ function animateCrane(X, T_s, varargin)
                           'Color',[0 0.45 0.74], 'LineWidth', 2, 'MaxHeadSize', 3);
     end
 
-    % info readout
-    txt = text(ax, -xspan+0.15, -L+0.05, '', 'FontName','Consolas', ...
-               'FontSize', 13, 'FontWeight', 'bold', 'VerticalAlignment','bottom');
+    % info readout, drawn inside a bordered box (top-left of the axes)
+    txt = text(ax, 0.015, 0.97, '', 'Units','normalized', ...
+               'FontName','Consolas', 'FontSize', 12, 'FontWeight','bold', ...
+               'VerticalAlignment','top', 'HorizontalAlignment','left', ...
+               'Color',[0.10 0.10 0.10], ...                 % dark text, fixed
+               'BackgroundColor',[1 1 1], 'EdgeColor',[0.3 0.3 0.3], ...
+               'LineWidth',1, 'Margin',8);
 
-    % legend
-    legHandles = cable; legLabels = {'cable'};
-    if ~isempty(trail),      legHandles(end+1)=trail;      legLabels{end+1}='load path'; end
-    if ~isempty(targetMark), legHandles(end+1)=targetMark; legLabels{end+1}='target x_{load}'; end
-    if ~isempty(inpArrow),   legHandles(end+1)=inpArrow;   legLabels{end+1}='input u'; end
-    legend(ax, legHandles, legLabels, 'Location','northeast','FontSize',11);
+    % legend: only the target marker
+    if ~isempty(targetMark)
+        legend(ax, targetMark, 'target x_{load}', 'Location','northeast','FontSize',11);
+    end
 
     % Video recorder 
     writer = [];
