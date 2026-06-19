@@ -1,8 +1,5 @@
-# MPC Crane Project — Bringing the Crane Under Control
-
-Skeleton MATLAB repository for the Model Predictive Control final project. All
-files are empty stubs (signatures, headers and task placeholders only) — no
-logic is implemented yet.
+# MPC / RL Crane Control Project
+A MATLAB repository for MPC and RBF Network to control the Crane Movement.
 
 ## System Overview
 
