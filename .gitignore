@@ -1,0 +1,28 @@
+% MATLAB autosave and generated files
+*.asv
+*.mat
+*.fig
+*.slx.autosave
+
+% System/IDE files
+.DS_Store
+.vscode/
+*.log
+
+% LaTeX artifacts
+*.aux
+*.lof
+*.lot
+*.out
+*.toc
+
+% Project outputs (keep .gitkeep to preserve structure)
+data/simulations/*
+!data/simulations/.gitkeep
+data/measurements/*
+!data/measurements/.gitkeep
+data/calibration/*
+!data/calibration/.gitkeep
+
+% Debug/temporary
+debug_logs/

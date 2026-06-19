@@ -4,6 +4,14 @@ Skeleton MATLAB repository for the Model Predictive Control final project. All
 files are empty stubs (signatures, headers and task placeholders only) — no
 logic is implemented yet.
 
+## System Overview
+
+![Overhead Crane System](docs/figures/crane.png)
+
+The overhead crane system consists of a trolley (carriage) moving along a horizontal rail,
+with a load suspended by a rigid cable. The control input is the trolley acceleration,
+and the objective is to move the load to desired positions while minimizing swing.
+
 ## Required toolboxes
 
 - Symbolic Math Toolbox
@@ -13,23 +21,47 @@ logic is implemented yet.
 ## Structure
 
 ```
-MPC_Crane_Project/
-├── main.m                              % entry script: params + run tasks
-├── tasks/
-│   ├── task1_approximate_nonlinearity.m  % RBF approximation of input slip
-│   ├── task2_nmpc.m                       % NMPC design and simulation
-│   └── task3_observer_ekf.m              % continuous-discrete EKF observer
-├── functions/
-│   ├── predictRBF_craneTime.m            % effective acceleration with slip
-│   ├── state_definition.m                % x_dot = f(x,u)
-│   ├── mes_definition.m                  % y = h(x,u)
-│   ├── jacobianSys.m                     % [A,B] = df/dx, df/du
-│   └── discreteF.m                       % one-step ode45 propagation
-├── provided/                            % course-supplied helpers (stubs)
-│   ├── simulateCran_multi.m
-│   ├── initializeCran.m
-│   └── responseCran.m
-└── results/                             % output figures/data (kept empty)
+nmpc-overhead-crane/
+├── startup.m                     
+├── main.m                       
+│
+├── src/                           
+│   ├── config/                    
+│   ├── models/                   
+│   │   ├── state_definition.m
+│   │   ├── mes_definition.m
+│   │   ├── jacobianSys.m
+│   │   └── discreteF.m
+│   ├── control/                   
+│   ├── estimation/               
+│   │   └── predictRBF_craneTime.m
+│   └── visualization/            
+│       ├── animateCrane.m
+│       ├── demo_animation.m
+│       └── Crane_animation.md
+│
+├── tasks/                      
+│   ├── task1_approximate_nonlinearity.m
+│   ├── task2_nmpc.m
+│   └── task3_observer_ekf.m
+│
+├── docs/                        
+│   └── figures/
+│       ├── crane.png
+│       └── .gitkeep
+│
+├── data/                         
+│   ├── simulations/             
+│   ├── measurements/            
+│   └── calibration/             
+│
+├── provided/                    
+│   ├── MPC_Project.mlx
+│   ├── MPC_Project.pdf
+│   └── functions/
+│       └── *.p files
+│
+└── .gitignore                  
 ```
 
 ## Tasks

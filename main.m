@@ -1,19 +1,23 @@
-%% MPC Project - Final Challenge: Bringing the Crane Under Control
-% Top-level entry script. Run the tasks in order.
-%
-% Required toolboxes:
-%   - Symbolic Math Toolbox
-%   - Control System Toolbox
-%   - Model Predictive Control Toolbox
+%% MPC Project
 
 clear; clf; clc;
 
-% Add project folders to the path
-addpath('tasks');
-addpath('functions');
-addpath('provided');
+%% NMPC Overhead Crane - Main Project Entry Point
+%
+% Make sure to run startup.m first to set up paths.
+%
+% Usage:
+%   startup          % Initialize paths (run once per session)
+%   main             % Run this script to execute tasks
 
-%% Experiment parameters
+% Verify paths are initialized
+if isempty(which('state_definition'))
+	warning('Paths not initialized. Run startup.m first.');
+	startup
+end
+
+%% Load configuration
+% Experiment parameters
 T_max  = 100;            % stop time for Patrick's experiment
 T_s    = 0.15;           % sample time for Patrick's experiment (can be changed)
 Hsim   = ceil(T_max/T_s);
