@@ -1,0 +1,11 @@
+*.asv
+.DS_Store
+*.mat
+*.fig
+*.slx.autosave
+results/
+debug_logs/
+.vscode/
+*.log
+*.aux
+*.lof
