@@ -6,7 +6,8 @@
 % Add project folders to the path
 addpath('tasks');
 addpath('functions');
-addpath('templete/');
+addpath('provided');
+addpath('templete');
 
 T_max = 100; % stop time for patricks experiment
 T_s = 0.15; %sample time for patricks experiment (can be changed)
