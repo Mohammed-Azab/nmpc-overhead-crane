@@ -10,5 +10,6 @@ function [A, B] = jacobianSys(x, u, strct)
     A = [0 1 0 0; -3 -0.1 3 0.1; 0 0 0 1; 0 0 0 -2]; % because B not dependent on x
 
     % for df/du -> only dependent on B
+    dgdu =@(u) ( (pi^2 * u^2)/400 + 1 )^(-1);
     B = [0; 0; 0; dgdu(u)];
 end
