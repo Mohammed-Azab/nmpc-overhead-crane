@@ -63,10 +63,10 @@ strct.sys = sys;
 
 Hp = 20;
 Hc = 10;
-Q = 20;
-R = 0.01;
+Q = [20, 0; 0 0.1];
+R = 0.5;
 
-nlmpcobj = nlmpc(4,1,1);
+nlmpcobj = nlmpc(4,2,1);
 nlmpcobj.Ts = T_s;
 nlmpcobj.PredictionHorizon = Hp;
 nlmpcobj.ControlHorizon = Hc;
@@ -87,7 +87,7 @@ nlmpcobj.OutputVariables(1).Min = -50;
 
 % Validate fns
 % Check at an equilibrium point.
-x0 = [0; 1; 1; 1];
+x0 = [1; 0.5; 1; 0.5];
 u0 = 0;
 
 nlmpcobj.validateFcns(x0,u0) 
@@ -99,32 +99,32 @@ nlmpcobj.validateFcns(x0,u0)
 % Simulation params
 t_end = 30;
 t_lin = 0:T_s:t_end;
+%y = [x_l; v_c]
 
-y_ref= [0*(0:T_s:5-T_s), 5*ones([1,length(5:T_s:20-T_s)]), 0*ones([1,length(20:T_s:t_end+Hp)])];
-
-% y_ref = zeros(1,267);
+%y_ref(1,:)= [0*(0:T_s:5-T_s), 5*ones([1,length(5:T_s:20-T_s)]), 0*ones([1,length(20:T_s:t_end+Hp)])];
+y_ref = zeros(2,267);
+%y_ref(2,:) = ones(1,length(y_ref))*0;
 
 % Initial conditions
-x = [0; 1; 1; 1];
+x = [0; 0; 0; 0.01];
 u = u0;
 
 % Storage
 X_stor = zeros(4, length(t_lin));
 U_stor = zeros(1, length(t_lin)); 
-yRef_stor = zeros(length(t_lin));
+yRef_stor = zeros(2, length(t_lin));
 Xcon_stor = [];
 tcon_stor = [];
 
-tic
 for k = 1:length(t_lin)
 
     % MPC-Control
-    u = nlmpcmove(nlmpcobj,x,u,y_ref(k:k+Hp)');
+    u = nlmpcmove(nlmpcobj,x,u,y_ref(:,k:k+Hp)');
     
     % Storage
     U_stor(:,k) = u;
     X_stor(:,k) = x;
-    yRef_stor(k) = y_ref(k);
+    yRef_stor(:,k) = y_ref(:,k);
 
     % System update
     [x, t_nl, x_nl] = discreteF(x,u,strct);
@@ -134,14 +134,14 @@ for k = 1:length(t_lin)
     tcon_stor = [tcon_stor, (k-1)*T_s+t_nl'];
 
 end
-toc
+
 
 % Plot
 figure;
 subplot(5,1,1);
 stairs(t_lin, X_stor(1,:)); hold on;
 plot(tcon_stor, Xcon_stor(1,:))
-plot(t_lin, yRef_stor, '--')
+plot(t_lin, yRef_stor(1,:), '--')
 legend('System (discrete)', 'System (cont.)','Reference', 'Location', 'northeast')
 ylabel('x load (x_1)')
 
@@ -158,6 +158,7 @@ ylabel('x crane (x_3)')
 subplot(5,1,4);
 stairs(t_lin, X_stor(4,:)); hold on;
 plot(tcon_stor, Xcon_stor(4,:))
+plot(t_lin, yRef_stor(2,:), '--')
 ylabel('v crane (x_4)')
 
 subplot(5,1,5);
