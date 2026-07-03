@@ -2,7 +2,7 @@
 % Generates a sample state trajectory from Patrick's linear model
 
 clear; clc; close all;
-addpath('functions');
+%addpath('functions');
 
 %% Sample time and Patrick's linear model
 T_s   = 0.05;              
