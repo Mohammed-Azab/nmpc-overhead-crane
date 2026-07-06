@@ -26,3 +26,9 @@ data/calibration/*
 
 % Debug/temporary
 debug_logs/
+
+% Saved plots / animations
+results/
+
+.claude
+latex/
