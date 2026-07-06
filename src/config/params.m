@@ -7,12 +7,15 @@ T_s   = 0.15;      % sample time [s]  (can be changed)
 
 %% State Space Model
 % x_dot = A x + [0;0;0;g(u)],  y = C x
-A = [ 0    1    0    0;
+ A = [ 0    1    0    0;
      -3  -0.1   3   0.1;
       0    0    0    1;
       0    0    0  -0.2]; 
 
-C = [1 0 0 0];     
+C = [1 0 0 0];
+
+% A(4,4) = -friction
+friction = 0.2;
 
 %% Input non-linearity fallback 
 % when RBF is NOT available
@@ -20,7 +23,7 @@ g_fallback    = @(u) (20/pi) .* atan((pi/20) .* u);
 dgdu_fallback = @(u) 1 ./ ((pi^2 .* u.^2)/400 + 1);
 
 %% RBF identification (Task 1)
-rbf_repeat       = 100; 
+rbf_repeat       = 300; 
 rbf_N            = 15;    % number of Gaussian centers
 rbf_sigma_factor = 2.0;   % width = sigma_factor * center spacing
 
@@ -47,4 +50,3 @@ sim_back  = 20;    % return to 0 at t = 20 s
 
 
 %% Notes
-% A(4,4) = -friction
