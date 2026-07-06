@@ -3,7 +3,6 @@
 
 clear; clc; close all;
 
-addProjectPaths;
 params;
 output_config;        % save / gif switches
 T_s = 0.05;           % finer sample time for a smooth animation
