@@ -19,5 +19,5 @@ else
 end
 
 % model equations
-f     = @(x,u) A*x + [0; 0; 0; g(u)];
+f     = @(x,u) A*x + B*g(u);
 stepF = @(x,u) stepODE(f, x, u, T_s);   % one-step integration over T_s

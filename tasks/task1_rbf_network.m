@@ -1,5 +1,7 @@
 %% Task 1
 loadSystem;
+fprintf('Loaded %d experiments, %d reps each.\n', ...
+        numel(steps_size)/repeat, repeat);
 
 %% a) Average the repeated measurements
 figure; set(gcf,'Color','w'); try, theme(gcf,'light'); catch, end
@@ -51,6 +53,9 @@ end
 [u_train, order] = sort(u_train);
 g_train = g_train(order);
 
+fprintf('\nReconstructed %d (u, g) pairs, u in [%.2f, %.2f].\n', ...
+        nExp, min(u_train), max(u_train));
+
 %% c) RBF weights by least squares
 N         = rbf_N;
 centers   = linspace(min(u_train), max(u_train), N);
@@ -62,6 +67,9 @@ for i = 1:N
 end
 w = Phi \ g_train;
 
+rmse = sqrt(mean((Phi*w - g_train).^2));
+fprintf('\nRBF fit: N = %d centers, sigma = %.3f, RMSE = %.4f.\n', N, sigma_rbf, rmse);
+
 
 %% d) Slip function and validation
 RBF.centers = centers;
@@ -69,13 +77,11 @@ RBF.sigma   = sigma_rbf;
 RBF.weights = w;
 RBF.t_lin   = t_lin;
 
-function y = predictRBF_craneTime(u, RBF)
-% g(u) from the trained RBF network.
-    y = reshape(exp(-(u(:) - RBF.centers(:).').^2 / (2*RBF.sigma^2)) * RBF.weights(:), size(u));
-end
-
 u_query = linspace(min(u_train), max(u_train), 400)';
 g_query = predictRBF_craneTime(u_query, RBF);
+
+fprintf('\nSlip at u = %.1f: g = %.2f (%.0f%% delivered).\n', ...
+        u_query(end), g_query(end), 100*g_query(end)/u_query(end));
 
 figure; set(gcf,'Color','w'); try, theme(gcf,'light'); catch, end
 plot(u_train, g_train, 'kx', 'MarkerSize', 9, 'LineWidth', 1.5, ...
