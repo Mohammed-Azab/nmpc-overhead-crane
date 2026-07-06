@@ -133,6 +133,6 @@ animateCrane(X, T_s, ...
 
 ## See Also
 
-- `state_definition` — Define state vector structure
-- `mes_definition` — Define measurement vector structure
-- `simulateCran_multi` — Run crane simulations
+- `state_definition`: Define state vector structure
+- `mes_definition`: Define measurement vector structure
+- `simulateCran_multi`: Run crane simulations

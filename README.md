@@ -63,13 +63,13 @@ nmpc-overhead-crane/
 
 ## Tasks
 
-1. **Approximate the non-linearity** — average repeated impulse-response
+1. **Approximate the non-linearity**: average repeated impulse-response
    measurements, derive accelerations from velocities, fit a Gaussian RBF
    network, build and validate the slip function.
-2. **Crane with NMPC** — analyze controllability/observability/stability,
+2. **Crane with NMPC**: analyze controllability/observability/stability,
    define the non-linear model/measurement/Jacobian, set up `nlmpc()` with
    constraints, simulate a setpoint change and check real-time capability.
-3. **Implement an observer** — add a continuous-discrete EKF, compare against
+3. **Implement an observer**: add a continuous-discrete EKF, compare against
    the "real" crane via `responseCran`, and re-check real-time capability.
 
 ## Notes
