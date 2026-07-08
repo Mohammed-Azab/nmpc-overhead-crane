@@ -18,6 +18,9 @@ function animateCrane(X, T_s, varargin)
     addParameter(p, 'Parent', []);
     addParameter(p, 'GifStride', 3);
     addParameter(p, 'GifScale', 0.6);
+    addParameter(p, 'Music', false);      % sonify the swing (pentatonic + harmonics)
+    addParameter(p, 'MusicFile', '');     % play this audio file instead (wav/mp3/...)
+    addParameter(p, 'Muted', true);       % start muted (toggle with the speaker button)
     parse(p, varargin{:});
     opt = p.Results;
 
@@ -164,6 +167,18 @@ function animateCrane(X, T_s, varargin)
         replayImg = image('Parent',replayAx,'CData',rpC,'AlphaData',rpA);
         axis(replayAx,'image'); axis(replayAx,'off');
         set([replayAx replayImg],'ButtonDownFcn',@(~,~) doReplay());
+
+        % mute / unmute toggle
+        [muOnC, muOnA ] = speakerIconRGBA(isz, ink, true);
+        [muOffC,muOffA] = speakerIconRGBA(isz, ink, false);
+        musicImg = [];
+        if ~isempty(opt.MusicFile) || opt.Music
+            if opt.Muted, mC = muOffC; mA = muOffA; else, mC = muOnC; mA = muOnA; end
+            musicAx  = axes('Parent',fig,'Units','normalized','Position',[0.793 yb iw iw],'Color','none');
+            musicImg = image('Parent',musicAx,'CData',mC,'AlphaData',mA);
+            axis(musicAx,'image'); axis(musicAx,'off');
+            set([musicAx musicImg],'ButtonDownFcn',@(~,~) toggleMusic());
+        end
     else
         txt = text(ax, 0.015, 0.97, '', 'Units','normalized', 'Interpreter','tex', ...
                'FontName',fontName,'FontSize',12, ...
@@ -181,19 +196,40 @@ function animateCrane(X, T_s, varargin)
         set(fig,'CloseRequestFcn',@(~,~) onClose());
     end
 
+    % swing sonification: the pendulum angle drives a pentatonic pitch (+ harmonics),
+    % so the audio literally traces the swing wave.
+    player = [];
+    if ~isempty(opt.MusicFile)
+        try
+            [snd, fs] = audioread(opt.MusicFile);   % your own song, played in sync
+            player = audioplayer(snd, fs);
+        catch
+            warning('animateCrane:music', 'Could not read music file: %s', opt.MusicFile);
+            player = [];
+        end
+    elseif opt.Music
+        try
+            [music, fs] = swingMusic(theta, N*dt);  % generated swing sonification
+            player = audioplayer(music, fs);
+        catch
+            player = [];
+        end
+    end
+
+    muted = logical(opt.Muted);      % music mute state (music follows the motion)
+
     if ~isempty(opt.Record)
-        recordRun();                 % blocking: write the file once
+        recordRun();                 % blocking: write the file once (no audio)
         kk = N;                      % leave at final frame, paused
         setPlayIcon('paused');
     else
-        start(anim);                 % auto-play interactively
+        start(anim);  aPlay();       % auto-play; music plays while it swings
     end
 
     function onTick()
         kk = kk + 1;
-        if kk > N
-            stop(anim);
-            setPlayIcon('paused');
+        if kk > N                    % motion finished -> stop everything
+            stop(anim);  aStop();  setPlayIcon('paused');
             return;
         end
         drawFrame(kk);
@@ -201,15 +237,47 @@ function animateCrane(X, T_s, varargin)
 
     function togglePlay()
         if strcmp(anim.Running,'on')
-            stop(anim);  setPlayIcon('paused');
+            stop(anim);  setPlayIcon('paused');  aPause();
         else
-            if kk >= N, kk = 0; end
+            if kk >= N, kk = 0; aStop(); aPlay(); else, aResume(); end
             start(anim); setPlayIcon('playing');
         end
     end
 
-    function doReplay()             % restart from the beginning at any time
-        stop(anim);  kk = 0;  start(anim);  setPlayIcon('playing');
+    function doReplay()              % restart motion (and music) from the beginning
+        stop(anim);  kk = 0;  aStop();  aPlay();  start(anim);  setPlayIcon('playing');
+    end
+
+    % ---- audio helpers (respect the mute toggle) ----
+    function aPlay()
+        if ~isempty(player) && ~muted, try, play(player); catch, end, end   %#ok<CTCH>
+    end
+    function aResume()
+        if isempty(player) || muted, return; end
+        try, resume(player); catch, try, play(player); catch, end, end       %#ok<CTCH>
+    end
+    function aPause()
+        if ~isempty(player), try, pause(player); catch, end, end             %#ok<CTCH>
+    end
+    function aStop()
+        if ~isempty(player), try, stop(player); catch, end, end              %#ok<CTCH>
+    end
+
+    function toggleMusic()
+        if isempty(player), return; end
+        muted = ~muted;
+        if muted
+            aPause();  setMusicIcon(false);
+        else
+            if strcmp(anim.Running,'on'), aResume(); end
+            setMusicIcon(true);
+        end
+    end
+
+    function setMusicIcon(on)
+        if isempty(musicImg) || ~ishandle(musicImg), return; end
+        if on, set(musicImg,'CData',muOnC, 'AlphaData',muOnA);
+        else,  set(musicImg,'CData',muOffC,'AlphaData',muOffA); end
     end
 
     function setPlayIcon(mode)
@@ -223,6 +291,7 @@ function animateCrane(X, T_s, varargin)
 
     function onClose()
         try, stop(anim); delete(anim); catch, end   %#ok<CTCH>
+        if ~isempty(player), try, stop(player); catch, end, end   %#ok<CTCH>
         delete(fig);
     end
 
@@ -372,6 +441,56 @@ function C = replayIconCData(sz, col)
         layer(mask) = col(ch);
         C(:,:,ch) = layer;
     end
+end
+
+function [y, fs] = swingMusic(sig, dur)
+% swingMusic  Sonify the swing: pitch (pentatonic) traces the signal, plus overtones.
+    fs = 22050;
+    L  = max(round(dur*fs), fs);                 % at least 1 s of audio
+    sig = sig(:);
+    if numel(sig) < 2, sig = [sig; sig]; end
+    s  = interp1(linspace(0,1,numel(sig)), sig, linspace(0,1,L), 'pchip').';
+    s  = s / (max(abs(s)) + eps);                % swing normalised to [-1, 1]
+
+    % map to a major-pentatonic scale over ~3 octaves so it always sounds harmonic
+    scale = [0 2 4 7 9];
+    notes = sort([scale-12, scale, scale+12, scale+24]);
+    idx   = round((s+1)/2 * (numel(notes)-1)) + 1;
+    semis = notes(min(max(idx,1),numel(notes))).';
+    freq  = 220 * 2.^(semis/12);                 % base A3
+
+    w    = max(round(0.03*fs), 1);
+    freq = movmean(freq, w);                      % glide between notes (portamento)
+    ph   = 2*pi*cumsum(freq)/fs;
+    y    = sin(ph) + 0.5*sin(2*ph) + 0.28*sin(3*ph) + 0.16*sin(4*ph);  % harmonics
+
+    spd  = abs([0; diff(s)]);                     % louder while swinging fast
+    spd  = spd / (max(spd) + eps);
+    y    = y .* (0.35 + 0.65*movmean(spd, w));
+
+    nf   = round(0.05*fs);                        % gentle fade in / out
+    env  = ones(L,1);
+    env(1:nf)        = linspace(0,1,nf);
+    env(end-nf+1:end) = linspace(1,0,nf);
+    y    = 0.9 * (y .* env) / (max(abs(y .* env)) + eps);
+end
+
+function [C, A] = speakerIconRGBA(sz, col, on)
+% speakerIconRGBA  Speaker icon; sound waves when on, a slash when muted.
+    [xx, yy] = meshgrid(1:sz, 1:sz);
+    x = (xx-1)/(sz-1);  y = (yy-1)/(sz-1);
+    body = x >= 0.10 & x <= 0.30 & abs(y-0.5) <= 0.13;
+    t    = max(min((x-0.30)/0.20, 1), 0);
+    cone = x >= 0.30 & x <= 0.50 & abs(y-0.5) <= (0.13 + t*0.17);
+    A = double(body | cone);
+    if on
+        r = hypot(x-0.50, y-0.5);
+        A(x > 0.54 & abs(r-0.18) < 0.028) = 1;   % near sound wave
+        A(x > 0.54 & abs(r-0.30) < 0.028) = 1;   % far sound wave
+    else
+        A(abs(x - y) < 0.03 & x > 0.08 & x < 0.62) = 1;   % mute slash
+    end
+    C = cat(3, col(1)*ones(sz), col(2)*ones(sz), col(3)*ones(sz));
 end
 
 function in = inTri(x, y, p1, p2, p3)

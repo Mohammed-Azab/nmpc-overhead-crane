@@ -28,6 +28,9 @@ function plotCraneResults(res, varargin)
     addParameter(ip, 'SaveAnim', false);
     addParameter(ip, 'GifStride', 3);
     addParameter(ip, 'GifScale', 0.6);
+    addParameter(ip, 'Music', false);
+    addParameter(ip, 'MusicFile', '');
+    addParameter(ip, 'Muted', true);
     parse(ip, varargin{:});
     opt = ip.Results;
 
@@ -91,7 +94,8 @@ function plotCraneResults(res, varargin)
     if opt.Animate
         T_s  = mean(diff(t));
         args = {'CableLength', opt.CableLength, 'Speed', opt.Speed, 'Title', opt.Title, ...
-                'GifStride', opt.GifStride, 'GifScale', opt.GifScale};
+                'GifStride', opt.GifStride, 'GifScale', opt.GifScale, ...
+                'Music', opt.Music, 'MusicFile', opt.MusicFile, 'Muted', opt.Muted};
         if hasRef, args = [args, {'Ref', res.ref}]; end
         if hasU,   args = [args, {'Input', res.u}]; end
         if opt.SaveAnim
