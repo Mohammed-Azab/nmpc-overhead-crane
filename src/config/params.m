@@ -12,7 +12,10 @@ T_s   = 0.15;      % sample time [s]  (can be changed)
       0    0    0    1;
       0    0    0  -0.2]; 
 
-C = [1 0 0 0];
+C = [1 0 0 0];              % NMPC output: only load position is measured
+B = [0; 0; 0; 1];           % input direction (g(u) acts here)
+C_full = [1 0 0 0;          % full sensor set (PDF): load position + crane velocity
+          0 0 0 1];         
 
 % A(4,4) = -friction
 friction = 0.2;
