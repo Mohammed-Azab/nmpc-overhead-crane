@@ -6,8 +6,9 @@ T_s   = 0.15;      % sample time [s]  (can be changed)
 
 
 %% State Space Model
-% x_dot = A x + [0;0;0;g(u)],  y = C x
- A = [ 0    1    0    0;
+% x_dot = A x + B g(u),  y = C x
+friction = 0.2;             % A(4,4) = -friction
+A = [ 0    1    0    0;
      -3  -0.1   3   0.1;
       0    0    0    1;
       0    0    0  -0.2]; 
@@ -25,16 +26,20 @@ friction = 0.2;
 g_fallback    = @(u) (20/pi) .* atan((pi/20) .* u);
 dgdu_fallback = @(u) 1 ./ ((pi^2 .* u.^2)/400 + 1);
 
+%% Slip model select:
+%  true -> identified RBF, false -> atan fallback
+RBF_MOD = false;
+
 %% RBF identification (Task 1)
-rbf_repeat       = 300; 
+rbf_repeat       = 300;
 rbf_N            = 15;    % number of Gaussian centers
 rbf_sigma_factor = 2.0;   % width = sigma_factor * center spacing
 
 %% NMPC (Task 2)
 Hp = 20;                 % prediction horizon
-Hc = 5;                  % control horizon
-Q  = diag([10 0 0 0]);   % state weights (track load position)
-R  = 0.1;                % input weight
+Hc = 10;                 % control horizon
+Q  = 20;                 % output tracking weight (load position)
+R  = 0.01;               % input weight
 u_min  = -5;   u_max  = 5;    % input limits
 du_min = -6;   du_max = 6;    % input rate limits
 x1_min = -50;  x1_max = 50;   % load position limits

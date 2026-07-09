@@ -3,6 +3,5 @@ function y = mes_definition(x, u, strct)
 %   y = mes_definition(x, u, strct) returns the measured output.
 %   In day-to-day operation only the load position is measured (y = x_load).
 
-    C = [1 0 0 0];
-    y = C*x;
+    y = strct.C * x;
 end
